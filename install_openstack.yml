@@ -1,0 +1,34 @@
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: Install Apache (Ubuntu)
+    apt:
+      name:
+        - apache2
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: Install MySQL (Ubuntu)
+    apt:
+      name:
+        - mysql-server
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+- hosts: Neutron
+  become: true
+  roles:
+    - role: Neutron
+
+- hosts: Horizon
+  become: true
+  roles:
+    - role: Horizon
+
+- hosts: Cinder
+  become: true
+  roles:
+    - role: Cinder

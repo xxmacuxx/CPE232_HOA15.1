@@ -1,0 +1,73 @@
+
+
+- name: Installing Cinder (Ubuntu)
+  apt:
+    name:
+      - cinder-api
+      - cinder-scheduler
+    state: latest
+
+- name: Configure Cinder
+  replace:
+        dest: /etc/cinder/cinder.conf
+        regexp: connection = mysql+pymysql://cinder:CINDER_DBPASS@controller/cinder
+        replace: connection = mysql+pymysql://cinder:admin123@controller/cinder
+        backup: yes
+
+- name: Configure Cinder
+  replace:
+        dest: /etc/cinder/cinder.conf
+        regexp: transport_url = rabbit://openstack:RABBIT_PASS@controller
+        replace: transport_url = rabbit://openstack:admin123@controller
+        backup: yes
+
+- name: Configure Cinder
+  lineinfile:
+        dest: /etc/cinder/cinder.conf
+        line: 'auth_strategy = keystone'
+        state: present
+        backup: yes
+
+- name: Configure Cinder
+  lineinfile:
+        dest: /etc/cinder/cinder.conf
+        insertafter: '\[keystone_authtoken\]'
+        line: '{{ item }}'
+        state: present
+        backup: yes
+
+  with_items:
+        - www_authenticate_uri = http://controller:5000
+        - auth_url = http://controller:5000
+        - memcached_servers = controller:11211
+        - auth_type = password
+        - project_domain_name = default
+        - user_domain_name = default
+        - project_name = service
+        - username = cinder
+        - password = pass123
+
+- name: Configure Cinder
+  lineinfile:
+        dest: /etc/cinder/cinder.conf
+        line: 'my_ip = 192.168.52.103'
+        state: present
+        backup: yes
+
+- name: Configure Cinder
+  lineinfile:
+        dest: /etc/cinder/cinder.conf
+        line: 'lock_path = /var/lib/cinder/tmp'
+        state: present
+        backup: yes
+
+- name: Populate the Database
+  shell: |
+    sudo cinder-manage db sync
+
+- name: Configure Cinder
+  lineinfile:
+        dest: /etc/nova/nova.conf
+        line: 'os_region_name = RegionOne'
+        state: present
+        backup: yes
